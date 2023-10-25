@@ -15,7 +15,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
 import java.net.URL;
 import java.net.URLConnection;
 import java.net.URLStreamHandler;
@@ -29,11 +29,11 @@ import static org.mockito.Mockito.*;
 public class OAuth2FlowHandlerImplTest {
 
     @Mock
-    private AppConfig appConfig;
+    public AppConfig appConfig;
     @Mock
-    private EnvConfig envConfig;
+    public EnvConfig envConfig;
     @Mock
-    private ObjectMapper objectMapper;
+    public ObjectMapper objectMapper;
 
     @InjectMocks
     private OAuth2FlowHandlerImpl oAuth2FlowHandler;
@@ -41,7 +41,7 @@ public class OAuth2FlowHandlerImplTest {
     @Test
     public void getTokenFreshGoldenPath() throws IOException, NoSuchFieldException {
         final String token = "exampleToken";
-        final HttpURLConnection mockUrlConnection = mock(HttpURLConnection.class);
+        final HttpsURLConnection mockUrlConnection = mock(HttpsURLConnection.class);
         final OutputStream outputStream = mock(OutputStream.class);
         final TokenResponse mockTokenResponse = mock(TokenResponse.class);
 
@@ -56,7 +56,8 @@ public class OAuth2FlowHandlerImplTest {
         String clientSecret = "someClientSecret";
         String encodeFormat = "UTF-8";
         int responseCode = 200;
-
+        FieldSetter.setField(oAuth2FlowHandler, oAuth2FlowHandler.getClass().getDeclaredField("urlStreamHandler"), urlStreamHandler);
+        
         ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(
             String.format("{'access_token':'%s', 'expires_in':'1'}", token).getBytes("UTF-8")
         );
@@ -64,10 +65,8 @@ public class OAuth2FlowHandlerImplTest {
         doReturn(clientId).when(envConfig).getClientId();
         doReturn(clientSecret).when(envConfig).getClientSecret();
         doReturn(encodeFormat).when(appConfig).getEncoding();
-        doReturn(new URL("http://www.google.com/")).when(appConfig).getTokenUrl();
+        doReturn(new URL("https://us.api.blizzard.com/d3/data/item-type?locale=en_US")).when(appConfig).getTokenUrl();
         doReturn(mockTokenResponse).when(objectMapper).readValue(anyString(), eq(TokenResponse.class));
-
-        FieldSetter.setField(oAuth2FlowHandler, oAuth2FlowHandler.getClass().getDeclaredField("urlStreamHandler"), urlStreamHandler);
 
         doReturn(byteArrayInputStream).when(mockUrlConnection).getInputStream();
         doReturn(outputStream).when(mockUrlConnection).getOutputStream();

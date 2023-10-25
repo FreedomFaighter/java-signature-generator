@@ -8,10 +8,10 @@ import lombok.extern.log4j.Log4j2;
 import org.apache.commons.io.IOUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import sun.net.www.protocol.http.Handler;
+import sun.net.www.protocol.https.Handler;
 
 import java.io.IOException;
-import java.net.HttpURLConnection;
+import javax.net.ssl.HttpsURLConnection;
 import java.net.URL;
 import java.net.URLStreamHandler;
 import java.time.Instant;
@@ -50,11 +50,11 @@ public class OAuth2FlowHandlerImpl implements OAuth2FlowHandler {
             String encodedCredentials = Base64.getEncoder().encodeToString(String.format("%s:%s", envConfig.getClientId(), envConfig.getClientSecret()).getBytes(appConfig.getEncoding()));
 
             // ------------------------------------------------- Allows testing/mocking of the URL connection object
-            HttpURLConnection con = null;
+            HttpsURLConnection con = null;
 
             try{
-            URL url = new URL(appConfig.getTokenUrl(), "", urlStreamHandler);
-            con = (HttpURLConnection) url.openConnection();
+            URL url = new URL(appConfig.getTokenUrl(), ""/*, urlStreamHandler*/);
+            con = (HttpsURLConnection) url.openConnection();
             con.setRequestMethod("POST");
             con.setRequestProperty("Authorization", String.format("Basic %s", encodedCredentials));
             con.setDoOutput(true);
